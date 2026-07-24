@@ -233,6 +233,69 @@ Google-ის ალგორითმები (მათ შორის SpamB
 
 ---
 
+## Slide 22.5: Fake Referer Header — How Traffic Generators Spoof Sources
+
+Most traffic generators fake the HTTP `Referer` header to make bot traffic look like it comes from Google, Facebook, or other real sources.
+
+**Puppeteer example — setting a fake referer:**
+
+```javascript
+const puppeteer = require('puppeteer');
+
+(async () => {
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+
+  // Fake Google search referer
+  await page.setExtraHTTPHeaders({
+    'Referer': 'https://www.google.com/search?q=seo+tools+2026'
+  });
+
+  await page.goto('https://yoursite.com');
+  await browser.close();
+})();
+```
+
+**curl example with fake referer:**
+```bash
+curl -H "Referer: https://www.facebook.com/sharer.php" https://yoursite.com
+```
+
+**Python requests example:**
+```python
+import requests
+headers = {
+    'Referer': 'https://www.google.com/search?q=best+seo+course',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+}
+requests.get('https://yoursite.com', headers=headers)
+```
+
+**"Slider" concept — referer source mixer:**
+```
+┌────────────────────────────────────────────┐
+│       Referer Source Mixer (configurable)   │
+├────────────────────────────────────────────┤
+│  Google organic      ████████████░░░  40%   │
+│  Facebook            ██████░░░░░░░░░  20%   │
+│  Twitter/X           ████░░░░░░░░░░░  15%   │
+│  Direct (no referer) █████░░░░░░░░░░  15%   │
+│  Bing                ██░░░░░░░░░░░░░  10%   │
+├────────────────────────────────────────────┤
+│  Total: 100%   Visitors/min: 5            │
+└────────────────────────────────────────────┘
+```
+
+**Why this is detected:**
+- Google knows the IP ranges of Facebook / Google — if referer says "facebook.com" but IP is a data center, it's obvious
+- Real browsers send many headers (Accept-Language, Sec-Fetch-Site, Sec-Fetch-Mode, etc.) — most fake scripts miss these
+- Timing: real visits from Facebook have a specific "landing" pattern; fake referers don't match real user behavior
+- GA4's `session_source` + `session_medium` vs IP analysis catches mismatches
+
+**Bottom line:** Spoofing referers fools basic tools but not Google's advanced detection. The "slider" concept makes the traffic look more varied, but behavioral signals still give it away.
+
+---
+
 ## სლაიდი 23: ხელოვნური ტრაფიკის დეტექცია GA4-ში
 
 თუ ეჭვი გაქვთ, რომ თქვენს საიტზე ბოტები მოძრაობენ, შეამოწმეთ GA4-ში შემდეგი მონაცემები:
